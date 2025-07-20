@@ -1,0 +1,49 @@
+# Congratulations! Your Gemini capsule is up :D
+
+This page (index.gmi) is stored in a folder named "docs". Go ahead and open it in a text editor like Notepad. Make some changes to it and refresh your browser to see them live.
+
+## How to format GMI
+
+```gmi
+# Heading 1
+## Heading 2
+### Heading 3
+
+=> page2.gmi Internal Link Text
+=> gemini://geminiprotocol.net External Link Text
+
+> This is a blockquote
+> Great for poetry, notes, or messages.
+
+Lists
+
+* List item 1
+* List item 2
+* List item 3
+```
+
+## How to host your capsule on the internet
+
+You'll need a real TLS certificate (not a self-signed one) for your public domain. Stop the GemServe server, delete the cert.pem and key.pem files and create new ones with certbot:
+
+```bash
+certbot certonly --standalone -d your.domain.name
+```
+
+Add DNS records on your provider's website like so:
+
+* Record Type: A
+* Name: @
+* Value: [Your IPv4 address]
+
+You can also add a AAAA record if your machine has an IPv6 address:
+
+* Record Type: AAAA
+* Name: @
+* Value: [Your IPv6 address]
+
+## Further Resources
+
+=> gemini://geminiquickst.art Gemini Quickstart Guide
+=> gemini://geminiprotocol.net Official Gemini protocol capsule
+=> gemini://geminiprotocol.net/docs/gemtext.gmi Gemtext markup introduction
