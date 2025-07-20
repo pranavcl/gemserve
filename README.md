@@ -44,6 +44,12 @@ pip install -r requirements.txt
 python run.py
 ```
 
+4. To compile it into a binary executable, install [PyInstaller](https://pyinstaller.org/en/stable/) using `pip install pyinstaller` and run:
+
+```
+pyinstaller --onefile run.py --distpath bin --name gemserve --clean
+```
+
 **All done!**
 
 ## License
