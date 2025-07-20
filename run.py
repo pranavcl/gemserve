@@ -6,6 +6,7 @@ from socket import socket
 from ssl import create_default_context, Purpose, SSLSocket
 from sys import argv, exit
 from os import path, mkdir
+from mimetypes import guess_type
 
 basicConfig()
 logger = getLogger(__name__)
@@ -171,23 +172,35 @@ def serve():
                     # print(f"Request: {request}")
                     # print(f"Address: {addr}")
                     
-                    splits = request.split("/")
-                    requested_file = splits[len(splits)-1]
+                    if "://" in request:
+                        path_part = request.split("://", 1)[1]
+                        if "/" in path_part:
+                            resource = path_part.split("/", 1)[1]
+                        else:
+                            resource = ""
+                    else:
+                        resource = request.lstrip("/")
 
-                    if(requested_file == ""):
-                        requested_file = "index.gmi"
+                    if resource == "":
+                        resource = "index.gmi"
 
-                    if not Path(f"{base_url}/docs/{requested_file}").is_file():
-                        logger.error(f"❌ File not found: {base_url}/docs/{requested_file}")
+                    if not Path(f"{base_url}/docs/{resource}").is_file():
+                        logger.error(f"❌ File not found: {base_url}/docs/{resource}")
                         conn.send(b"51 Not Found\r\n")
                         continue
 
-                    f = open(f"{base_url}/docs/{requested_file}", "r")
-                    res = f.read()
-                    f.close()
+                    mime_type, _ = guess_type(f"{base_url}/docs/{resource}")
 
-                    conn.send(b"20 text/gemini\r\n")
-                    conn.send(res.encode())
+                    if resource.endswith(".gmi"):
+                        mime_type = "text/gemini"
+
+                    if not mime_type:
+                        mime_type = "application/octet-stream"
+
+                    conn.send(f"20 {mime_type}\r\n".encode())
+
+                    with open(f"{base_url}/docs/{resource}", 'rb') as f:
+                        conn.sendfile(f)
                 finally:
                     conn.close()
         except KeyboardInterrupt:
