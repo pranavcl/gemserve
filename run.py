@@ -14,7 +14,7 @@ logger.setLevel(INFO)
 
 HOST = "0.0.0.0"
 PORT = 1965
-MAXCONN = 5
+MAXCONN = 10
 base_url = "."
 
 if len(argv) > 1:
@@ -184,6 +184,11 @@ def serve():
                     if resource == "":
                         resource = "index.gmi"
 
+                    resource_path = Path(f"{base_url}/docs/{resource}")
+                    if resource_path.is_dir():
+                        resource = resource.rstrip("/") + "/index.gmi"
+                        resource_path = Path(f"{base_url}/docs/{resource}")
+
                     if not Path(f"{base_url}/docs/{resource}").is_file():
                         logger.error(f"❌ File not found: {base_url}/docs/{resource}")
                         conn.send(b"51 Not Found\r\n")
@@ -197,10 +202,15 @@ def serve():
                     if not mime_type:
                         mime_type = "application/octet-stream"
 
-                    conn.send(f"20 {mime_type}\r\n".encode())
+                    try:
+                        conn.send(f"20 {mime_type}\r\n".encode())
 
-                    with open(f"{base_url}/docs/{resource}", 'rb') as f:
-                        conn.sendfile(f)
+                        with open(f"{base_url}/docs/{resource}", 'rb') as f:
+                            conn.sendfile(f)
+                    except:
+                        print_exc()
+                        logger.error(f"❌ Failed to serve resource {base_url}/docs/{resource}")
+                        conn.send(b"40 Temporary Failure\r\n")
                 finally:
                     conn.close()
         except KeyboardInterrupt:
